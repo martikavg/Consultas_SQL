@@ -1,12 +1,16 @@
--- ====================================================
--- PROYECTO: CONSULTAS SQL (SAKILA DATABASE)
--- TECNOLOGÍAS: PostgreSQL + DBeaver
--- ====================================================
+/****************************************************************************************
+ *                                                                                      *
+ *                              PROYECTO LOGICA: CONSULTAS DE SQL                       *
+ *                            Resolución de Consultas BBDD "SHAKILA"                    *
+ *                                   Total de Consultas: 64                             *
+ *                                                                                      *
+ ****************************************************************************************/
 
 -- ======================================================================================
 --1. Crea el esquema de la BBDD.
--- Para este paso se ejecutó el script de inicialización de la base de datos "Shakila" en PostgreSQL,
--- creando las tablas correspondientes y cargando los datos de prueba a través de DBeaver.
+-- Para este paso se ejecutó el script de inicialización de la base de datos "Shakila" en 
+-- PostgreSQL, creando las tablas correspondientes y cargando los datos de prueba a través
+-- de DBeaver.Se guardó una copia del esquema de BBDD como "Diagrama_Shakila.png"
 -- ======================================================================================
 
 -- ======================================================================================
@@ -124,12 +128,14 @@ WHERE "c"."title" = 'EGG IGBY';
 
 -- ======================================================================================
 -- 18. Selecciona todos los nombres de las películas únicos.
+-- Nota: Se usa DISTINCT para asegurarnos de que no haya títulos duplicados en el resultado.
 SELECT DISTINCT "title" 
 FROM "film" ;
 -- ======================================================================================
 
 -- ======================================================================================
 --19. Encuentra el título de las películas que son comedias y tienen una duración mayor a 180 minutos en la tabla “film”.
+-- Nota: Se cruzan las tablas film, film_category y category para poder filtrar tanto por la categoría 'Comedy' como por la duración.
 SELECT "a"."title"
 FROM "film" AS "a"
 INNER JOIN "film_category" AS "b" ON "a"."film_id" = "b"."film_id"
@@ -139,6 +145,7 @@ WHERE "c"."name" = 'Comedy' AND "a"."length" > 180 ;
 
 -- ======================================================================================
 -- 20. Encuentra las categorías de películas que tienen un promedio de duración superior a 110 minutos y muestra el nombre de la categoría junto con el promedio de duración.
+-- Nota: Se usa HAVING en lugar de WHERE porque estamos filtrando sobre el resultado de una función de agregación (el promedio AVG).
 SELECT "c".name AS categoria, ROUND(AVG("a"."length"),2) AS "promedio_duracion"
 FROM "category" AS "c"
 INNER JOIN "film_category" AS "b" ON "c"."category_id" = "b"."category_id"
@@ -161,6 +168,7 @@ FROM "actor";
 
 -- ======================================================================================
 -- 23. Números de alquiler por día, ordenados por cantidad de alquiler de forma descendente.
+-- Nota: Se usa DATE() para extraer solo la fecha (sin la hora) de "rental_date" y poder agrupar por día.
 SELECT DATE("rental_date") AS "fecha", COUNT(*) AS "total_alquileres"
 FROM "rental"
 GROUP BY DATE("rental_date")
@@ -169,6 +177,7 @@ ORDER BY "total_alquileres" DESC;
 
 -- ======================================================================================
 -- 24. Encuentra las películas con una duración superior al promedio.
+-- Nota: Se usa una subconsulta para calcular primero el promedio global y luego filtrar las películas que lo superen.
 SELECT "title", "length"
 FROM "film"
 WHERE "length" > (SELECT AVG("length") FROM "film");
@@ -176,6 +185,7 @@ WHERE "length" > (SELECT AVG("length") FROM "film");
 
 -- ======================================================================================
 -- 25. Averigua el número de alquileres registrados por mes.
+-- Nota: Se usa TO_CHAR para darle un formato lindo de Año-Mes (YYYY-MM) a las fechas y agruparlas.
 SELECT TO_CHAR("rental_date", 'YYYY-MM') AS "mes", COUNT(*) AS "total_alquileres"
 FROM "rental"
 GROUP BY TO_CHAR("rental_date", 'YYYY-MM')
@@ -193,6 +203,7 @@ FROM "payment";
 
 -- ======================================================================================
 -- 27. ¿Qué películas se alquilan por encima del precio medio?
+-- Nota: Se usa una subconsulta para calcular el precio de alquiler ("rental_rate") promedio y filtrar las que están por encima.
 SELECT "title", "rental_rate"
 FROM "film"
 WHERE "rental_rate" > (SELECT AVG("rental_rate") FROM "film");
@@ -200,6 +211,7 @@ WHERE "rental_rate" > (SELECT AVG("rental_rate") FROM "film");
 
 -- ======================================================================================
 -- 28. Muestra el id de los actores que hayan participado en más de 40 películas.
+-- Nota: Se agrupa en la tabla intermedia "film_actor" por el id del actor y filtramos con HAVING.
 SELECT "actor_id", COUNT("film_id") AS "total_peliculas"
 FROM "film_actor"
 GROUP BY "actor_id"
@@ -209,6 +221,7 @@ ORDER BY "total_peliculas" DESC ;
 
 -- ======================================================================================
 -- 29. Obtener todas las películas y, si están disponibles en el inventario, mostrar la cantidad disponible.
+-- Nota: Se usa LEFT JOIN para asegurar que aparezcan todas las películas (incluso si no hay stock) y contamos sus registros en el inventario.
 SELECT "f"."title", COUNT("i"."inventory_id") AS "cantidad_disponible"
 FROM "film" AS "f"
 LEFT JOIN "inventory" AS "i" ON "f"."film_id" = "i"."film_id"
@@ -218,6 +231,7 @@ ORDER BY "cantidad_disponible" DESC;
 
 -- ======================================================================================
 -- 30. Obtener los actores y el número de películas en las que han actuado.
+Nota: Se cruza la tabla "actor" con la intermedia "film_actor" para poder mostrar nombre, apellido y su conteo correspondiente.
 SELECT "a"."actor_id", "a"."first_name", "a"."last_name", COUNT("fa"."film_id") AS "numero_de_peliculas"
 FROM "actor" AS "a"
 LEFT JOIN "film_actor" AS "fa" ON "a"."actor_id" = "fa"."actor_id"
@@ -227,6 +241,8 @@ ORDER BY "numero_de_peliculas" DESC;
 
 -- ======================================================================================
 -- 31. Obtener todas las películas y mostrar los actores que han actuado en ellas, incluso si algunas películas no tienen actores asociados.
+-- Nota: Se usa LEFT JOIN desde "film" hacia la tabla intermedia "film_actor" y luego hacia "actor" para no perder ninguna película.
+SELECT f."title", a."first_name", a."last_name"
 SELECT "f"."title", "a"."first_name", "a"."last_name"
 FROM "film" AS "f"
 LEFT JOIN "film_actor" AS "fa" ON "f"."film_id" = "fa"."film_id"
@@ -235,6 +251,7 @@ LEFT JOIN "actor" AS "a" ON "fa"."actor_id" = "a"."actor_id";
 
 -- ======================================================================================
 -- 32. Obtener todos los actores y mostrar las películas en las que han actuado, incluso si algunos actores no han actuado en ninguna película.
+-- Nota: En este caso se parte con LEFT JOIN desde "actor" para asegurarnos de listar a todos los actores del sistema.
 SELECT "a"."first_name", "a"."last_name", "f"."title"
 FROM "actor" AS "a"
 LEFT JOIN "film_actor" AS "fa" ON "a"."actor_id" = "fa"."actor_id"
@@ -243,6 +260,7 @@ LEFT JOIN "film" AS "f" ON "fa"."film_id" = "f"."film_id";
 
 -- ======================================================================================
 -- 33. Obtener todas las películas que tenemos y todos los registros de alquiler.
+-- Nota: Se cruza "film" con "inventory" y luego con "rental" usando LEFT JOIN para ver el historial completo de cada película.
 SELECT "f"."title", "r"."rental_id", "r"."rental_date"
 FROM "film" AS "f"
 LEFT JOIN "inventory" AS "i" ON "f"."film_id" = "i"."film_id"
@@ -251,6 +269,7 @@ LEFT JOIN "rental" AS "r" ON "i"."inventory_id" = "r"."inventory_id";
 
 -- ======================================================================================
 -- 34. Encuentra los 5 clientes que más dinero se hayan gastado con nosotros.
+-- Nota: Se suman los pagos por cliente, agrupamos, ordenamos de mayor a menor y limitamos a los 5 primeros.
 SELECT "c"."customer_id", "c"."first_name", "c"."last_name", SUM("p"."amount") AS "total_gastado"
 FROM "customer" AS "c"
 INNER JOIN "payment" AS "p" ON "c"."customer_id" = "p"."customer_id"
@@ -261,6 +280,7 @@ LIMIT 5;
 
 -- ======================================================================================
 -- 35. Selecciona todos los actores cuyo primer nombre es 'Johnny'.
+-- Nota: En BBDD Shakila los nombres suelen estar en mayúsculas.
 SELECT "actor_id", "first_name", "last_name"
 FROM "actor"
 WHERE "first_name" = 'JOHNNY';
@@ -274,6 +294,7 @@ FROM "actor";
 
 -- ======================================================================================
 -- 37. Encuentra el ID del actor más bajo y más alto en la tabla actor.
+-- Nota: Se usa MIN y MAX para obtener los valores extremos de "actor_id".
 SELECT MIN("actor_id") AS "id_mas_bajo", MAX("actor_id") AS "id_mas_alto"
 FROM "actor";
 -- ======================================================================================
@@ -293,6 +314,7 @@ ORDER BY "last_name" ASC;
 
 -- ======================================================================================
 -- 40. Selecciona las primeras 5 películas de la tabla “film”.
+-- Nota: Se usa LIMIT 5 para traer únicamente los primeros 5 registros.
 SELECT "film_id", "title", "description"
 FROM "film"
 LIMIT 5;
@@ -308,6 +330,7 @@ ORDER BY "cantidad_repetidos" DESC;
 
 -- ======================================================================================
 -- 42. Encuentra todos los alquileres y los nombres de los clientes que los realizaron.
+-- Nota: Se cruzan las tablas "rental" y "customer" mediante INNER JOIN.
 SELECT "r"."rental_id", "r"."rental_date", "c"."first_name", "c"."last_name"
 FROM "rental" AS "r"
 INNER JOIN "customer" AS "c" ON "r"."customer_id" = "c"."customer_id";
@@ -333,6 +356,7 @@ CROSS JOIN "category" AS "c";
 
 -- ======================================================================================
 -- 45. Encuentra los actores que han participado en películas de la categoría 'Action'.
+-- Nota: Se conecta "actor", la tabla intermedia "film_actor", la intermedia "film_category" y la tabla "category" para filtrar y luego ordenar.
 SELECT DISTINCT "a"."actor_id", "a"."first_name", "a"."last_name"
 FROM "actor" AS "a"
 INNER JOIN "film_actor" AS "fa" ON "a"."actor_id" = "fa"."actor_id"
@@ -344,6 +368,7 @@ ORDER BY "a"."last_name" ASC;
 
 -- ======================================================================================
 -- 46. Encuentra todos los actores que no han participado en películas.
+-- Nota: Se usa LEFT JOIN y se filtran los que tengan NULL en la tabla intermedia (no requiere alias en la columna del WHERE).
 SELECT "a"."actor_id", "a"."first_name", "a"."last_name"
 FROM "actor" AS "a"
 LEFT JOIN "film_actor" AS "fa" ON "a"."actor_id" = "fa"."actor_id"
@@ -360,18 +385,20 @@ GROUP BY "a"."actor_id", "a"."first_name", "a"."last_name";
 
 -- ======================================================================================
 -- 48. Crea una vista llamada “actor_num_peliculas” que muestre los nombres de los actores y el número de películas en las que han participado.
-WITH "actor_num_peliculas" AS (
-    SELECT "a"."first_name", "a"."last_name", COUNT("fa"."film_id") AS "numero_de_peliculas"
-    FROM "actor" AS "a"
-    INNER JOIN "film_actor" AS "fa" ON "a"."actor_id" = "fa"."actor_id"
-    GROUP BY "a"."actor_id", "a"."first_name", "a"."last_name"
-)
-SELECT * 
-FROM "actor_num_peliculas";
+CREATE VIEW "actor_num_peliculas" AS
+SELECT "a"."first_name", "a"."last_name", COUNT("fa"."film_id") AS "numero_de_peliculas"
+FROM "actor" AS "a"
+INNER JOIN "film_actor" AS "fa" ON "a"."actor_id" = "fa"."actor_id"
+GROUP BY "a"."actor_id", "a"."first_name", "a"."last_name";
+
+-- Nota: Se ejecuta consulta desde la VISTA, sin necesidad de repetir la lógica
+SELECT *
+FROM "actor_num_peliculas" 
 -- ======================================================================================
 
 -- ======================================================================================
 -- 49. Calcula el número total de alquileres realizados por cada cliente.
+-- Nota: Como se agrupa por una columna de la misma tabla, no lleva alias innecesarios.
 SELECT "customer_id", COUNT(*) AS "total_alquileres"
 FROM "rental"
 GROUP BY "customer_id";
@@ -388,30 +415,33 @@ WHERE "c"."name" = 'Action';
 
 -- ======================================================================================
 -- 51. Crea una tabla temporal llamada “cliente_rentas_temporal” para almacenar el total de alquileres por cliente.
-WITH "cliente_rentas_temporal" AS (
-    SELECT "customer_id", COUNT(*) AS "total_alquileres"
-    FROM "rental"
-    GROUP BY "customer_id"
-)
-SELECT * 
-FROM "cliente_rentas_temporal";
+CREATE TEMPORARY TABLE "cliente_rentas_temporal" AS
+SELECT "customer_id", COUNT(*) AS "total_alquileres"
+FROM "rental"
+GROUP BY "customer_id";
+
+-- Nota: Se ejecuta consulta desde la CTE, sin necesidad de repetir la lógica 
+SELECT *
+FROM "cliente_rentas_temporal"
 -- ======================================================================================
 
 -- ======================================================================================
 -- 52. Crea una tabla temporal llamada “peliculas_alquiladas” que almacene las películas que han sido alquiladas al menos 10 veces.
-WITH "peliculas_alquiladas" AS (
-    SELECT "i"."film_id", COUNT("r"."rental_id") AS "veces_alquilada"
-    FROM "rental" AS "r"
-    INNER JOIN "inventory" AS "i" ON "r"."inventory_id" = "i"."inventory_id"
-    GROUP BY "i"."film_id"
-    HAVING COUNT("r"."rental_id") >= 10
-)
-SELECT * 
-FROM "peliculas_alquiladas";
+CREATE TEMPORARY TABLE "peliculas_alquiladas" AS
+SELECT "i"."film_id", COUNT("r"."rental_id") AS "veces_alquilada"
+FROM "rental" AS "r"
+INNER JOIN "inventory" AS "i" ON "r"."inventory_id" = "i"."inventory_id"
+GROUP BY "i"."film_id"
+HAVING COUNT("r"."rental_id") >= 10;
+
+-- Nota: Se ejecuta consulta desde la CTE, sin necesidad de repetir la lógica 
+SELECT *
+FROM "peliculas_alquiladas"
 -- ======================================================================================
 
 -- ======================================================================================
 -- 53. Encuentra el título de las películas que han sido alquiladas por el cliente con el nombre ‘Tammy Sanders’ y que aún no se han devuelto. Ordena los resultados alfabéticamente por título de película.
+-- Nota: "return_date IS NULL" indica que la película no se devolvió.
 SELECT "f"."title"
 FROM "rental" AS "r"
 INNER JOIN "customer" AS "c" ON "r"."customer_id" = "c"."customer_id"
@@ -423,6 +453,7 @@ ORDER BY "f"."title" ASC;
 
 -- ======================================================================================
 -- 54. Encuentra los nombres de los actores que han actuado en al menos una película que pertenece a la categoría ‘Sci-Fi’. Ordena los resultados alfabéticamente por apellido.
+--Nota: Se usa DISTINCT para evitar duplicar actores.
 SELECT DISTINCT "a"."first_name", "a"."last_name"
 FROM "actor" AS "a"
 INNER JOIN "film_actor" AS "fa" ON "a"."actor_id" = "fa"."actor_id"
@@ -434,6 +465,7 @@ ORDER BY "a"."last_name" ASC;
 
 -- ======================================================================================
 -- 55. Encuentra el nombre y apellido de los actores que han actuado en películas que se alquilaron después de que la película ‘Spartacus Cheaper’ se alquilara por primera vez. Ordena los resultados alfabéticamente por apellido.
+-- Nota: La subconsulta busca la fecha mínima de alquiler para esa película específica y la usa para filtrar los alquileres globales.
 SELECT DISTINCT "a"."first_name", "a"."last_name"
 FROM "actor" AS "a"
 INNER JOIN "film_actor" AS "fa" ON "a"."actor_id" = "fa"."actor_id"
@@ -451,6 +483,7 @@ ORDER BY "a"."last_name" ASC;
 
 -- ======================================================================================
 -- 56. Encuentra el nombre y apellido de los actores que no han actuado en ninguna película de la categoría ‘Music’.
+-- Nota: Se usa NOT IN contra una subconsulta que obtiene todos los IDs de actores que SI hicieron música. No lleva alias innecesarios adentro.
 SELECT "actor_id", "first_name", "last_name"
 FROM "actor"
 WHERE "actor_id" NOT IN (
@@ -465,6 +498,7 @@ ORDER BY "last_name" ASC;
 
 -- ======================================================================================
 -- 57. Encuentra el título de todas las películas que fueron alquiladas por más de 8 días.
+-- Nota: Se resta la fecha de alquiler a la de devolución y filtramos con un INTERVAL de 8 días.
 SELECT DISTINCT "f"."title"
 FROM "film" AS "f"
 INNER JOIN "inventory" AS "i" ON "f"."film_id" = "i"."film_id"
@@ -474,6 +508,7 @@ WHERE ("r"."return_date" - "r"."rental_date") > INTERVAL '8 days';
 
 -- ======================================================================================
 -- 58. Encuentra el título de todas las películas que son de la misma categoría que ‘Animation’.
+-- Nota: Como pide la misma categoría que 'Animation', simplemente se filtra directamente por ese nombre conectando las tablas correspondientes.
 SELECT "f"."title"
 FROM "film" AS "f"
 INNER JOIN "film_category" AS "fc" ON "f"."film_id" = "fc"."film_id"
@@ -483,6 +518,7 @@ WHERE "c"."name" = 'Animation';
 
 -- ======================================================================================
 -- 59. Encuentra los nombres de las películas que tienen la misma duración que la película con el título ‘Dancing Fever’. Ordena los resultados alfabéticamente por título de película.
+-- Nota: Una subconsulta busca la duración exacta de 'Dancing Fever' para usarla como filtro en la consulta principal.
 SELECT "title", "length"
 FROM "film"
 WHERE "length" = (
@@ -495,6 +531,7 @@ ORDER BY "title" ASC;
 
 -- ======================================================================================
 -- 60. Encuentra los nombres de los clientes que han alquilado al menos 7 películas distintas. Ordena los resultados alfabéticamente por apellido.
+-- Nota: Se usa COUNT(DISTINCT ...) en el HAVING para garantizar que las 7 películas sean diferentes entre sí.
 SELECT "c"."first_name", "c"."last_name"
 FROM "customer" AS "c"
 INNER JOIN "rental" AS "r" ON "c"."customer_id" = "r"."customer_id"
