@@ -16,6 +16,7 @@ proyecto-consultas-SQL/
  │    └── Diagrama_Shakila.png     # Exportación del Diagrama Entidad-Relación (DER)
  │
  └── README.md                     # Descripción técnica del proyecto
+```
 
 ## 3. Modelado de Datos Subyacente (Análisis Técnico del Backend)
 Para dar respuesta a la exigencia de profundidad en la documentación técnica, se detalla a continuación la arquitectura relacional utilizada:
