@@ -34,7 +34,7 @@ El *"diagrama_shakila.png"* representa el esquema public analizado y mapeado des
 ## 💰4. Instalación y Requisitos
 Para replicar, ejecutar y validar este análisis, se requieren las siguientes herramientas y dependencias:
 
-•	Motor de Base de Datos: PostgreSQL (Versión 8.3.0).
+•	Motor de Base de Datos: PostgreSQL (Versión 18.3.0).
 
 •	Cliente de Gestión Integrado (IDE): DBeaver (26.0.4).
 
